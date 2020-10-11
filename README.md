@@ -1,3 +1,3 @@
 # MaskDetectionProject
-# Demo
+# Video Demonstration
 ![](mask.gif)
