@@ -10,6 +10,7 @@ import random
 from shutil import copyfile
 from tqdm import tqdm
 from sklearn.metrics import roc_curve, auc
+from tensorflow.keras.models import load_model
 
 
 def split_data(source, training, validation, split_size):
@@ -105,124 +106,149 @@ def plot_keras_history(history):
         plt.show()
 
 
-# define the path of the folder that contains source images, before divided into train-validation
-mask = os.path.join('dataset//with_mask')
-no_mask = os.path.join('dataset//without_mask')
-# create the destination folders
-os.mkdir('training_data')
-os.mkdir('validation_data')
-os.mkdir('training_data//with_mask')
-os.mkdir('training_data//without_mask')
-os.mkdir('validation_data//with_mask')
-os.mkdir('validation_data//without_mask')
 
-# split dataset into train - validation
-split_data(mask, 'training_data//with_mask//', 'validation_data//with_mask//', .7)
-split_data(no_mask, 'training_data//without_mask//', 'validation_data//without_mask//', .7)
+def create_folders():
+    """
+    function that creates folders in order to store training and validation data
+    :return:
+    """
+    # define the path of the folder that contains source images, before divided into train-validation
+    mask = os.path.join('dataset//with_mask')
+    no_mask = os.path.join('dataset//without_mask')
+    # create the destination folders
+    os.mkdir('training_data')
+    os.mkdir('validation_data')
+    os.mkdir('training_data//with_mask')
+    os.mkdir('training_data//without_mask')
+    os.mkdir('validation_data//with_mask')
+    os.mkdir('validation_data//without_mask')
 
-# define the model
-model = tf.keras.models.Sequential([
-    tf.keras.layers.Conv2D(16, (3, 3), input_shape=(300, 300, 1), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(512, activation='relu'),
-    tf.keras.layers.Dense(1, activation='sigmoid')
-])
+    # split dataset into train - validation
+    split_data(mask, 'training_data//with_mask//', 'validation_data//with_mask//', .7)
+    split_data(no_mask, 'training_data//without_mask//', 'validation_data//without_mask//', .7)
 
-print(model.summary())
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+def create_model():
+    """
+    function that creates, compile and fit model
+    :return:
+    """
+    # define the model
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv2D(16, (3, 3), input_shape=(300, 300, 1), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(512, activation='relu'),
+        tf.keras.layers.Dense(1, activation='sigmoid')
+    ])
 
-# create instances of image data generator for training and validation set
-train_datagen = ImageDataGenerator(rescale=1.0 / 255,
-                                   zoom_range=[0.5, 1.5],
-                                   brightness_range=[0.5, 1.5])
-val_datagen = ImageDataGenerator(rescale=1.0 / 255)
+    print(model.summary())
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-# define folder for input data
-train_generator = train_datagen.flow_from_directory(
-    'training_data//',
-    color_mode='grayscale',
-    target_size=(300, 300),
-    batch_size=128,
-    class_mode='binary'
-)
+    # create instances of image data generator for training and validation set
+    train_datagen = ImageDataGenerator(rescale=1.0 / 255,
+                                       zoom_range=[0.5, 1.5],
+                                       brightness_range=[0.5, 1.5])
+    val_datagen = ImageDataGenerator(rescale=1.0 / 255)
 
-val_generator = val_datagen.flow_from_directory(
-    'validation_data//',
-    color_mode='grayscale',
-    target_size=(300, 300),
-    batch_size=64,
-    class_mode='binary'
-)
+    # define folder for input data
+    train_generator = train_datagen.flow_from_directory(
+        'training_data//',
+        color_mode='grayscale',
+        target_size=(300, 300),
+        batch_size=128,
+        class_mode='binary'
+    )
 
-# create callbacks for the model
-monitor = 'val_loss'
-model_fname = 'cnn_model.h5'
+    val_generator = val_datagen.flow_from_directory(
+        'validation_data//',
+        color_mode='grayscale',
+        target_size=(300, 300),
+        batch_size=64,
+        class_mode='binary'
+    )
 
-es = EarlyStopping(monitor=monitor, patience=5, verbose=1, restore_best_weights=True)
-mc = ModelCheckpoint(filepath=model_fname, monitor=monitor, save_best_only=True, save_weights_only=True, verbose=1)
+    # create callbacks for the model
+    monitor = 'val_loss'
+    model_fname = 'cnn_model.h5'
 
-# fit the model
-history = model.fit_generator(train_generator,
-                              epochs=15,
-                              validation_data=val_generator,
-                              callbacks=[es, mc])
+    es = EarlyStopping(monitor=monitor, patience=5, verbose=1, restore_best_weights=True)
+    mc = ModelCheckpoint(filepath=model_fname, monitor=monitor, save_best_only=True, save_weights_only=True, verbose=1)
 
-# save model
-model.save('cnn_model.h5')
-# plot accuracy and loss on train - validation data
-plot_keras_history(history)
+    # fit the model
+    history = model.fit_generator(train_generator,
+                                  epochs=15,
+                                  validation_data=val_generator,
+                                  callbacks=[es, mc])
 
-# time to test our model
-# define and instance of image data generator for test data
-test_data_gen = ImageDataGenerator(rescale=1.0 / 255)
-test_generator = test_data_gen.flow_from_directory(
-    'test_data//',
-    target_size=(300, 300),
-    batch_size=32,
-    class_mode='binary',
-    color_mode='grayscale',
-    shuffle=False
-)
-# take labels of test data
-real_classes = test_generator.classes
-# define the names of labels
-names = test_generator.class_indices.keys()
-# do predictions on test data
-predictions = model.predict(test_generator, batch_size=10)
+    # save model
+    model.save('cnn_model.h5')
+    # plot accuracy and loss on train - validation data
+    plot_keras_history(history)
 
-# store results on a list
-predicted_classes = []
-for p in predictions:
-    predicted_classes.append(1) if p > 0.5 else predicted_classes.append(0)
 
-# print classification report
-report = classification_report(real_classes, predicted_classes, target_names=names)
-print(report)
-# print confusion matrix
-print_confusion_matrix(real_classes, predicted_classes, names)
+def test_model():
+    """
+    function that make predictions on test dataset
+    also prints confusion matrix, classification report and ROC curve
+    :return:
+    """
+    model = load_model('cnn_model.h5')
+    # time to test our model
+    # define and instance of image data generator for test data
+    test_data_gen = ImageDataGenerator(rescale=1.0 / 255)
+    test_generator = test_data_gen.flow_from_directory(
+        'test_data//',
+        target_size=(300, 300),
+        batch_size=32,
+        class_mode='binary',
+        color_mode='grayscale',
+        shuffle=False
+    )
+    # take labels of test data
+    real_classes = test_generator.classes
+    # define the names of labels
+    names = test_generator.class_indices.keys()
+    # do predictions on test data
+    predictions = model.predict(test_generator, batch_size=10)
 
-# plot ROC curve
-plt.figure(1)
-plt.plot([0, 1], [0, 1], 'k--')
-fpr, tpr, thresholds = roc_curve(real_classes, predicted_classes)
-auc_score = auc(fpr, tpr)
-plt.plot(fpr, tpr, label='{} (area = {:.3f})'.format('Keras', auc_score))
-plt.xlabel('False positive rate')
-plt.ylabel('True positive rate')
-plt.title('ROC curve')
-plt.legend(loc='best')
-plt.show()
+    # store results on a list
+    predicted_classes = []
+    for p in predictions:
+        predicted_classes.append(1) if p > 0.5 else predicted_classes.append(0)
+
+    # print classification report
+    report = classification_report(real_classes, predicted_classes, target_names=names)
+    print(report)
+    # print confusion matrix
+    print_confusion_matrix(real_classes, predicted_classes, names)
+
+    # plot ROC curve
+    plt.figure(1)
+    plt.plot([0, 1], [0, 1], 'k--')
+    fpr, tpr, thresholds = roc_curve(real_classes, predicted_classes)
+    auc_score = auc(fpr, tpr)
+    plt.plot(fpr, tpr, label='{} (area = {:.3f})'.format('Keras', auc_score))
+    plt.xlabel('False positive rate')
+    plt.ylabel('True positive rate')
+    plt.title('ROC curve')
+    plt.legend(loc='best')
+    plt.show()
+
+
+if __name__ == "__main__":
+    create_folders()
+    create_model()
+    test_model()
