@@ -1,0 +1,43 @@
+body {
+    background-color: lightgray;
+}
+
+h1 {
+    color: black;
+    display: flex;
+    justify-content: center;
+}
+
+#buttons{
+    margin: auto;
+    width: 50%;
+    padding: 50px;
+}
+
+div {
+    display: flex;
+    justify-content: center;
+}
+
+img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 40%;
+    border: 3px solid black;
+}
+
+div#header{
+    display: block;
+}
+
+p{
+    width: 50%;
+    text-align:left;
+    margin: auto;
+}
+
+button{
+    padding: 5px;
+    margin: 5px;
+}

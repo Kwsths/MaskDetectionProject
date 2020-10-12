@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <title>Mask Detection</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"> </script>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/graphics.css') }}">
+    <script src="{{url_for('static', filename='functionality.js')}}"></script>
+  </head>
+  <body>
+    <div id="header">
+      <h1>Live Video Demonstration</h1>
+      <p>
+        This web application utilizes a Convolutional Neural Network in order to detect whether someone wears a mask or not.
+        Process is divided in two stages: first one face detection algorithm is used in order to extract faces from frames
+        given from video and then the CNN model classifies individual. <br>
+        This application constitutes a real case on which CNNs can be used. The present application could be a CCTV
+        camera on places where a big number of people is gathered. <br>
+        Start and Stop button below, initiare and terminate recording. More details for a specific recording can be
+        found on log file.
+      </p>
+    </div>
+    <div id="buttons">
+      <button type="button" onclick="opencam()">Start Recording</button>
+      <button type="button" onclick="closecam()">Stop Recording</button>
+    </div>
+    <div id = "div1"></div>
+  </body>
+</html>
