@@ -11,4 +11,5 @@ In case you want to run our application you have to follow the next steps, after
 # Video Demonstration
 In case you want to run our application and see a live demonstration you have to run the app.py file inside VideoApplication folder.<br/>
 After running this file open your browser on http://localhost:5000 and our application will launch on your browser. This application uses cnn_model.h5 file which contains our model. Bellow you can see a live demonstration
+<br/>
 ![](mask_web_app.gif)
