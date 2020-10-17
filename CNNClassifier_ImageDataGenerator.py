@@ -236,7 +236,7 @@ def test_model():
     print_confusion_matrix(real_classes, predicted_classes, names)
 
     # plot ROC curve
-    plt.figure(1)
+    plt.figure()
     plt.plot([0, 1], [0, 1], 'k--')
     fpr, tpr, thresholds = roc_curve(real_classes, predicted_classes)
     auc_score = auc(fpr, tpr)
