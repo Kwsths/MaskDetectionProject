@@ -12,6 +12,7 @@ import pandas as pd
 from sklearn import metrics
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 # ---------------------------------------------------------------------------------------------
 # useful piece of code
@@ -39,25 +40,25 @@ class HOG_Transformer(BaseEstimator, TransformerMixin):
 
 # function to read the images
 # data have been constructed on three different folders for train, validation and test sets
-def readimages(path, folders):
+def readimages(folders):
     img_array = []
     labels_array = []
     i = 0
     y = 0
 
     for folder in folders:
-        if os.path.isdir(path + folder):
-            for root, dirs, files in os.walk(path + folder):
+        if os.path.isdir(folder):
+            for root, dirs, files in os.walk(folder):
                 print(root)
-                if root == (path + folder + '/with_mask'):
-                    for name in files:
+                if root == (folder + '\with_mask'):
+                    for name in tqdm(files):
                         if name.endswith((".jpg")) or name.endswith((".png")):
                             print(os.path.join(root, name))
                             i += 1
                             img_array.append(np.array(Image.open(os.path.join(root, name)).convert('L').resize((64, 128))))
                             labels_array.append(0)      #class 0 is with mask
-                elif root == (path + folder + '/without_mask'):
-                    for name in files:
+                elif root == (folder + '\without_mask'):
+                    for name in tqdm(files):
                         if name.endswith((".jpg")) or name.endswith((".png")):
                             print(os.path.join(root, name))
                             y += 1
@@ -77,7 +78,7 @@ train_class = []
 
 # we join train and validation data to a single dataset
 # this is because we will later use a method for 10-CV on which data will be divided automatically
-train_img, train_class = readimages('/Users/panoskosmidis/Desktop/MaskDetection', ['/training_data','/validation_data'])
+train_img, train_class = readimages(['training_data','validation_data'])
 
 # shuffle data because they were in order on folders
 train_img, train_class = shuffle(train_img, train_class, random_state = 45)
@@ -201,7 +202,7 @@ notes.write("\n")
 test_img = []
 test_class = []
 
-test_img, test_class = readimages('/Users/panoskosmidis/Desktop/MaskDetection', ['/test_data'])
+test_img, test_class = readimages(['test_data'])
 
 test_img, test_class = shuffle(test_img, test_class, random_state = 98)
 
