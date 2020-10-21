@@ -17,6 +17,9 @@ In case you want to run our application you have to follow the next steps, after
 * SVM classifier.py: file used to train an SVM classifier
 * cnn_model.h5: basic model used for prediction
 * haarcascade_frontalface_default.xml: xml used for face detection
+* Mask_Project_with_cropped_images.ipynb: Ipython notebook that is used to train our third try-model for image classification.
+* ImageTransformation.ipynb: This file is used to cropp the images that will be fed into the third model.
+* MaskDetectionProjectReport.pdf: Final report of our project.
 # Video Demonstration
 In case you want to run our application and see a live demonstration you have to run the app.py file inside VideoApplication folder.<br/>
 After running this file open your browser on http://localhost:5000 and our application will launch on your browser. This application uses cnn_model.h5 file which contains our model. Bellow you can see a live demonstration
